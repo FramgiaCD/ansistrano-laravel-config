@@ -1,0 +1,25 @@
+- hosts: all
+  gather_facts: false
+  become: yes
+  become_method: sudo
+  vars:
+    server_name: localhost
+    nginx_config_name: default
+    php_version: 5.6
+    ansistrano_deploy_to: /var/www/ansistrano # Base path to deploy to.
+    ansistrano_current_path: "{{ ansistrano_deploy_to }}/{{ ansistrano_current_dir }}"
+    ansistrano_after_update_code_tasks_file: "{{ playbook_dir }}/tasks/after_update_code.yml"
+    ansistrano_after_symlink_shared_tasks_file: "{{ playbook_dir }}/tasks/after_symlink_shared.yml"
+    ansistrano_after_symlink_tasks_file: "{{ playbook_dir }}/tasks/after_symlink.yml"
+    ansistrano_shared_paths:
+      - storage
+      - node_modules
+    ansistrano_shared_files:
+      - .env
+    ansistrano_deploy_via: git
+    ansistrano_git_repo: git@github.com:FramgiaDockerTeam/laravel-ssh-source.git # Location of the git repository
+    ansistrano_git_branch: master # What version of the repository to check out. This can be the full 40-character SHA-1 hash, the literal string HEAD, a branch name, or a tag name
+    ansistrano_git_identity_key_path: /root/.ssh/id_rsa # If specified this file is copied over and used as the identity key for the git commands, path is relative to the playbook in which it is used
+
+  roles:
+    - carlosbuenosvinos.ansistrano-deploy

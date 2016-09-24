@@ -1,0 +1,31 @@
+- name: Composer create-project
+  composer: command=create-project working_dir={{ ansistrano_release_path.stdout }} optimize_autoloader=no
+
+- name: Generate secret key
+  command: php artisan key:generate chdir={{ ansistrano_release_path.stdout }}
+  with_items:
+    - '{{ ansistrano_shared_file_stats.results }}'
+  when: item.item == ".env" and item.stat.exists == false
+
+- name: Allow to read and write into storage
+  file:
+    path: "{{ ansistrano_release_path.stdout }}/storage/"
+    mode: u=rwx,g=rwx,o=rwx
+    state: directory
+    recurse: yes
+
+- name: Allow to read and write into cache
+  file:
+    path: "{{ ansistrano_release_path.stdout }}/bootstrap/cache/"
+    mode: u=rwx,g=rwx,o=rwx
+    state: directory
+    recurse: yes
+
+# - name: Database migration
+#   command: php artisan migrate --force chdir={{ ansistrano_release_path.stdout }}
+
+- name: Node package install
+  command: npm install chdir={{ ansistrano_release_path.stdout }}
+
+- name: Gulp assets
+  command: gulp chdir={{ ansistrano_release_path.stdout }}

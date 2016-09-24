@@ -1,0 +1,29 @@
+server {
+    listen 80 default_server;
+
+    server_name {{ server_name }};
+    root {{ ansistrano_current_path }}/public;
+
+    error_log {{ ansistrano_current_path }}/error.log;
+    access_log {{ ansistrano_current_path }}/access.log;
+
+    index index.html index.php;
+
+    location / {
+        try_files $uri $uri /index.php$is_args$args;
+    }
+
+    location ~ ^/.+\.php(/|$) {
+        fastcgi_split_path_info ^(.+?\.php)(/.*)$;
+        if (!-f $document_root$fastcgi_script_name) {
+            return 404;
+        }
+        include fastcgi_params;
+        fastcgi_pass unix:/var/run/php/php{{ php_version }}-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_param REALPATHTEST $realpath_root;
+        internal;
+    }
+}

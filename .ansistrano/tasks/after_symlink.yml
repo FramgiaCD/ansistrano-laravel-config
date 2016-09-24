@@ -1,0 +1,21 @@
+- name: Check nginx configured
+  stat: path={{ ansistrano_deploy_to }}/{{ nginx_config_name }}
+  register: nginx_config
+
+- name: Copy configuration of nginx
+  template: src=templates/nginx.conf.j2 dest=/etc/nginx/sites-available/{{ nginx_config_name }} force=yes
+  when: nginx_config.stat.exists is defined and nginx_config.stat.exists == false
+
+- name: Enable config nginx
+  file: >
+    dest=/etc/nginx/sites-enabled/{{ nginx_config_name }}
+    src=/etc/nginx/sites-available/{{ nginx_config_name }}
+    state=link
+    force=yes
+  when: nginx_config.stat.exists is defined and nginx_config.stat.exists == false
+
+- name: Reload nginx
+  shell: service nginx reload
+  become: yes
+  become_user: root
+  when: nginx_config.stat.exists is defined and nginx_config.stat.exists == false

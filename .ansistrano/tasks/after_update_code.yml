@@ -1,0 +1,17 @@
+- stat: path={{ ansistrano_shared_path.stdout }}/{{ item }}
+  with_items: '{{ ansistrano_shared_files }}'
+  register: ansistrano_shared_file_stats
+
+- name: Create empty environment file
+  file: path={{ ansistrano_shared_path.stdout }}/{{ item.item }} state=touch owner=root mode=0755
+  with_items: '{{ ansistrano_shared_file_stats.results }}'
+  when: item.item == ".env" and item.stat.exists == false
+
+- stat: path={{ ansistrano_shared_path.stdout }}/{{ item }}
+  with_items: '{{ ansistrano_shared_paths }}'
+  register: ansistrano_shared_path_stats
+
+- name: Copy default storage folder
+  command: cp -r {{ ansistrano_release_path.stdout }}/{{ item.item }} {{ ansistrano_shared_path.stdout }}/{{ item.item }}
+  with_items: '{{ ansistrano_shared_path_stats.results }}'
+  when: item.item == "storage" and item.stat.exists == false
